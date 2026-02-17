@@ -46,7 +46,6 @@ using HttpClient client = new HttpClient();
 
 Criar uma instância de HttpClient por requisição pode causar:
 
-- Alto overhead
 - Baixa performance
 - Exaustão de conexões TCP
 
