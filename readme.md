@@ -74,7 +74,9 @@ Consequências:
 • Uso ineficiente de recursos do sistema
 
 
+--------------------------------------------------------
 CORREÇÕES APLICADAS
+--------------------------------------------------------
 
 --------------------------------------------------------
 1. Aguardar todas as Tasks com Task.WhenAll
