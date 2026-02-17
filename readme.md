@@ -1,138 +1,148 @@
-DownloaderApp
+# DownloaderApp
 
+## Visão geral
 
-Descrição
---------------------------------------------------------
-Este projeto demonstra uma implementação correta de downloads concorrentes em C# utilizando programação assíncrona com async/await, garantindo segurança em ambiente multi-thread e uso eficiente de recursos.
+Este projeto apresenta a análise e correção de um código que realiza downloads HTTP utilizando múltiplas operações assíncronas em C#.
 
-O objetivo foi corrigir problemas comuns relacionados a:
+O objetivo foi identificar problemas de concorrência, gerenciamento de recursos, sincronização e uso incorreto de programação assíncrona, e implementar
+uma solução correta, determinística e eficiente.
 
-• Concorrência
-• Gerenciamento de recursos
-• Sincronização
+---
 
+# Problemas identificados no código original
 
-PROBLEMAS DA VERSÃO ORIGINAL
+---
 
---------------------------------------------------------
-1. Tasks não eram aguardadas corretamente
---------------------------------------------------------
+## 1️⃣ Tasks não eram aguardadas corretamente
 
-Código problemático:
+### Onde
 
-    DownloadAsync(url);
+As chamadas assíncronas eram iniciadas sem aguardar sua conclusão:
 
-Problema:
+```csharp
+DownloadAsync(url);
+```
 
-Os downloads eram iniciados, mas o programa não aguardava sua conclusão.
+### ⚠ Impacto
 
-Consequências:
+- O programa continuava executando antes da conclusão dos downloads
+- O cache poderia conter menos elementos que o esperado
+- Resultados inconsistentes
+- Execução não determinística
 
-• O programa poderia terminar antes dos downloads finalizarem
-• O cache poderia conter menos dados do que o esperado
-• Comportamento inconsistente
-• Race conditions possíveis
+### Correção
 
+Armazenamento das Tasks e uso de `Task.WhenAll` para aguardar sua conclusão:
 
---------------------------------------------------------
-2. Uso de coleção não thread-safe
---------------------------------------------------------
-
-Código problemático:
-
-    private static List<string> cache = new List<string>();
-
-Problema:
-
-List<T> não é thread-safe e não pode ser usada com múltiplas threads simultaneamente.
-
-Consequências possíveis:
-
-• Race conditions
-• Corrupção de memória
-• Exceções em tempo de execução
-• Dados inconsistentes
-• Comportamento imprevisível
-
-
---------------------------------------------------------
-3. Criação de múltiplas instâncias de HttpClient
---------------------------------------------------------
-
-Código problemático:
-
-    using HttpClient client = new HttpClient();
-
-Problema:
-
-Criar uma instância de HttpClient por requisição é uma má prática.
-
-Consequências:
-
-• Baixa performance
-• Exaustão de conexões TCP 
-• Uso ineficiente de recursos do sistema
-
-
---------------------------------------------------------
-CORREÇÕES APLICADAS
---------------------------------------------------------
-
---------------------------------------------------------
-1. Aguardar todas as Tasks com Task.WhenAll
---------------------------------------------------------
-
-Código corrigido:
-
-    await Task.WhenAll(tasks);
+```csharp
+await Task.WhenAll(tasks);
+```
 
 Benefícios:
 
-• Garante que todos os downloads terminem antes da continuação do programa
-• Elimina execução incompleta
-• Garante consistência de dados
-• Permite execução concorrente segura
+- Execução determinística
+- Garantia de conclusão de todas as operações
+- Comportamento previsível
 
+---
 
---------------------------------------------------------
-2. Uso de coleção thread-safe (ConcurrentBag)
---------------------------------------------------------
+## 2️⃣ Uso de coleção não thread-safe (race condition)
 
-Código corrigido:
+### Onde
 
-    private static readonly ConcurrentBag<string> cache = new();
+```csharp
+private static List<string> cache = new List<string>();
+```
+
+E múltiplas operações concorrentes executando:
+
+```csharp
+cache.Add(data);
+```
+
+### ⚠ Impacto
+
+`List<T>` não é thread-safe e pode causar:
+
+- Race conditions
+- Corrupção interna da estrutura
+- Exceções intermitentes
+- Dados inconsistentes
+
+### Correção
+
+Substituição por `ConcurrentBag<string>`:
+
+```csharp
+private static readonly ConcurrentBag<string> cache = new();
+```
 
 Benefícios:
 
-• Estrutura thread-safe
-• Elimina race conditions
-• Suporte nativo a concorrência
-• Melhor performance em cenários paralelos
-• Segurança em ambiente multi-thread
+- Thread-safe por design
+- Suporte nativo a concorrência
+- Elimina necessidade de sincronização manual
+- Melhor performance em cenários concorrentes
 
+---
 
---------------------------------------------------------
-3. Reutilização de HttpClient
---------------------------------------------------------
+## 3️⃣ Criação de múltiplas instâncias de HttpClient
 
-Código corrigido:
+### Onde
 
-    private static readonly HttpClient client = new();
+```csharp
+using HttpClient client = new HttpClient();
+```
+
+Executado dentro do método de download.
+
+### ⚠ Impacto
+
+- Baixa performance
+- Alto overhead de criação de conexões
+- Exaustão de conexões TCP (Socket exhaustion)
+- Uso ineficiente de recursos do sistema
+
+### Correção
+
+Reutilização de uma única instância de HttpClient:
+
+```csharp
+private static readonly HttpClient client = new();
+```
 
 Benefícios:
 
-• Melhor performance
-• Reutilização de conexões HTTP
-• Boa prática recomendada pela Microsoft
-• Uso eficiente de recursos do sistema
+- Reutilização de conexões HTTP
+- Melhor performance
+- Uso eficiente de recursos
+- Boa prática recomendada pela Microsoft
 
+---
 
-RESULTADO FINAL
+# Solução implementada
+
+A solução final utiliza:
+
+- Programação assíncrona com async/await
+- Task.WhenAll para sincronização das operações
+- ConcurrentBag para armazenamento thread-safe
+- Instância única reutilizável de HttpClient
+- Execução concorrente segura e eficiente
+
+---
+
+---
+
+# Resultado final
 
 A implementação agora garante:
 
-• Execução concorrente correta
-• Thread safety
-• Gerenciamento adequado de recursos
-• Alta performance
-• Código seguro e previsível
+- Execução concorrente correta
+- Thread safety
+- Gerenciamento adequado de recursos
+- Execução determinística
+- Alta performance
+- Uso correto de programação assíncrona em C#
+
+---
