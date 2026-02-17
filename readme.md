@@ -1,6 +1,5 @@
-========================================================
 DownloaderApp
-========================================================
+
 
 Descrição
 --------------------------------------------------------
@@ -13,9 +12,7 @@ O objetivo foi corrigir problemas comuns relacionados a:
 • Sincronização
 
 
-========================================================
 PROBLEMAS DA VERSÃO ORIGINAL
-========================================================
 
 --------------------------------------------------------
 1. Tasks não eram aguardadas corretamente
@@ -77,9 +74,7 @@ Consequências:
 • Uso ineficiente de recursos do sistema
 
 
-========================================================
 CORREÇÕES APLICADAS
-========================================================
 
 --------------------------------------------------------
 1. Aguardar todas as Tasks com Task.WhenAll
@@ -130,9 +125,7 @@ Benefícios:
 • Uso eficiente de recursos do sistema
 
 
-========================================================
 RESULTADO FINAL
-========================================================
 
 A implementação agora garante:
 
